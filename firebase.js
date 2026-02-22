@@ -3,7 +3,6 @@ import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https:/
 import { getFirestore, collection, addDoc, getDocs, query, where, updateDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  // REPLACE WITH YOUR FIREBASE CONFIG
 piKey: "AIzaSyCr3KppyletpqOJktE0mD5R5MpLAnvB7Ug",
   authDomain: "tournament-manager-617fe.firebaseapp.com",
   projectId: "tournament-manager-617fe",
