@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Esports Player Hub</title>
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="pb-20"> <header class="p-4 border-b border-gray-800 flex justify-between items-center bg-[#15151a]">
+        <h1 class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#39ff14] to-[#00f3ff]">PLAYER HUB</h1>
+        <div id="userInfo" class="text-sm text-gray-400">Loading...</div>
+    </header>
+
+    <main class="p-4 space-y-6 max-w-md mx-auto">
+        <section class="bg-[#15151a] p-5 rounded-xl border border-gray-800">
+            <h2 class="text-lg font-bold mb-3 text-white">Join Tournament</h2>
+            <div class="flex gap-2">
+                <input type="text" id="joinCode" placeholder="Enter 6-8 digit code" class="flex-1 bg-black border border-gray-700 text-white p-3 rounded focus:outline-none focus:border-[#39ff14] uppercase text-center tracking-widest">
+                <button id="verifyCodeBtn" class="bg-[#39ff14] text-black font-bold px-4 py-2 rounded glow-green">VERIFY</button>
+            </div>
+            
+            <div id="regForm" class="hidden mt-4 space-y-3 animate-slide-in">
+                <input type="text" id="gameId" placeholder="In-Game ID" class="w-full bg-black border border-gray-700 text-white p-3 rounded">
+                <input type="text" id="discordUser" placeholder="Discord Username (#1234)" class="w-full bg-black border border-gray-700 text-white p-3 rounded">
+                <button id="submitRegBtn" class="w-full bg-[#00f3ff] text-black font-bold p-3 rounded glow-blue mt-2">CONFIRM SLOT</button>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-bold mb-3 text-white">My Active Matches</h2>
+            <div id="myMatches" class="space-y-3">
+                </div>
+        </section>
+        
+        
+    </main>
+
+    <nav class="bottom-nav fixed bottom-0 w-full p-4 flex justify-around text-gray-400 text-sm">
+        <button class="text-[#39ff14]">Home</button>
+        <button>Brackets</button>
+        <button>Rules</button>
+        <button id="logoutBtn">Logout</button>
+    </nav>
+
+    <script type="module" src="js/player.js"></script>
+</body>
+</html>
