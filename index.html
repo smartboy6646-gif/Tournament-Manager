@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task & Live Timer</title>
+    <style>
+        :root {
+            --primary: #4A90E2;
+            --primary-dark: #357ABD;
+            --bg: #F0F2F5;
+            --card-bg: #FFFFFF;
+            --text: #333;
+            --border: #E4E6EB;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        /* Navigation / Tabs */
+        .navbar {
+            display: flex;
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav-btn {
+            flex: 1;
+            padding: 12px 0;
+            text-align: center;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            border-bottom: 4px solid transparent;
+        }
+        .nav-btn:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        .nav-btn.active {
+            border-bottom: 4px solid white;
+            background-color: var(--primary-dark);
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+            padding: 15px;
+        }
+        .screen.active {
+            display: block;
+        }
+
+        /* Form Styles */
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            font-weight: 600;
+            font-size: 13px;
+            color: #555;
+            margin-bottom: -8px;
+        }
+        input {
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+        input:focus {
+            border-color: var(--primary);
+        }
+        .btn-main {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            width: 100%;
+            font-weight: bold;
+        }
+
+        /* Task List Styles */
+        .main-task {
+            background: var(--card-bg);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        .main-task-header {
+            background-color: #f8f9fa;
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border);
+            border-left: 5px solid var(--primary);
+            font-size: 16px;
+            font-weight: bold;
+            color: #2c3e50;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+        .main-task-header:hover {
+            background-color: #e9ecef;
+        }
+        .toggle-icon {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+        
+        /* Subtask Container */
+        .subtasks-container {
+            display: none; 
+            padding: 12px;
+            background-color: #f4f6f8; /* Light gray background to separate from white cards */
+        }
+        
+        .sub-task {
+            padding: 12px;
+            background-color: white;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        .sub-task:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* Highlight for Running Task */
+        .sub-task.is-running {
+            border: 2px solid var(--success);
+            background-color: #f0fdf4; /* Very light green tint */
+            box-shadow: 0 4px 10px rgba(46, 204, 113, 0.15);
+        }
+
+        .sub-task h3 {
+            margin: 0 0 4px 0;
+            font-size: 15px;
+            color: #222;
+        }
+        
+        /* Timer UI & Video Tracker UI */
+        .timer-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .timer-display {
+            font-size: 20px; /* Reduced size */
+            font-family: monospace;
+            font-weight: bold;
+            color: #333;
+            background: #eee;
+            padding: 8px;
+            border-radius: 5px;
+            text-align: center;
+            min-width: 90px;
+        }
+        .sub-task.is-running .timer-display {
+            background: #d1fae5;
+            color: #059669;
+            animation: pulse 1.5s infinite;
+        }
+        
+        /* Video Notes Styles - Compact */
+        .video-tracker {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            background: #fdfdfd;
+            padding: 6px;
+            border: 1px dashed #ccc;
+            border-radius: 5px;
+        }
+        .sub-task.is-running .video-tracker {
+            border-color: #a7f3d0;
+            background: white;
+        }
+        .video-tracker label {
+            font-size: 10px;
+            color: #666;
+            margin-bottom: -2px;
+            font-weight: 600;
+        }
+        .video-tracker input {
+            padding: 4px 6px;
+            font-size: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        /* Buttons & Actions */
+        .actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .btn-action {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            font-size: 13px;
+        }
+        .btn-start { background-color: var(--success); }
+        .btn-stop { background-color: var(--danger); }
+        .btn-history { background-color: #95a5a6; }
+
+        .stats {
+            font-size: 12px;
+            color: #777;
+        }
+        .history-list {
+            margin-top: 10px;
+            background: #f9f9f9;
+            padding: 8px;
+            border-radius: 5px;
+            font-size: 12px;
+            display: none;
+            max-height: 120px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <button class="nav-btn active" id="tabList" onclick="switchTab('list')">📋 My Tasks</button>
+        <button class="nav-btn" id="tabAdd" onclick="switchTab('add')">➕ Add Task</button>
+    </div>
+
+    <div id="screenList" class="screen active">
+        <div id="taskContainer">
+            </div>
+    </div>
+
+    <div id="screenAdd" class="screen">
+        <div class="card">
+            <div class="form-group">
+                <label>Main Task Category</label>
+                <input type="text" id="mainTaskInput" placeholder="e.g., Scratch Project">
+                
+                <label>Specific Sub-Task</label>
+                <input type="text" id="subTaskInput" placeholder="e.g., Learning Part 2">
+                
+                <label>Target Time (in minutes)</label>
+                <input type="number" id="targetTimeInput" placeholder="e.g., 45">
+            </div>
+            <button class="btn-main" onclick="addTask()">Save Task</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Data Management ---
+        let tasksData = JSON.parse(localStorage.getItem('myAdvancedTracker')) || {};
+        let openCategories = {};
+
+        function saveData() {
+            localStorage.setItem('myAdvancedTracker', JSON.stringify(tasksData));
+        }
+
+        function switchTab(tabName) {
+            document.getElementById('screenList').classList.remove('active');
+            document.getElementById('screenAdd').classList.remove('active');
+            document.getElementById('tabList').classList.remove('active');
+            document.getElementById('tabAdd').classList.remove('active');
+
+            if (tabName === 'list') {
+                document.getElementById('screenList').classList.add('active');
+                document.getElementById('tabList').classList.add('active');
+                renderTasks();
+            } else {
+                document.getElementById('screenAdd').classList.add('active');
+                document.getElementById('tabAdd').classList.add('active');
+            }
+        }
+
+        function toggleCategory(categoryName) {
+            openCategories[categoryName] = !openCategories[categoryName];
+            renderTasks();
+        }
+
+        function addTask() {
+            const mainTask = document.getElementById('mainTaskInput').value.trim();
+            const subTask = document.getElementById('subTaskInput').value.trim();
+            const targetTime = document.getElementById('targetTimeInput').value.trim();
+
+            if (!mainTask || !subTask || !targetTime) {
+                alert("Sabai details fill garnuhos!");
+                return;
+            }
+
+            if (!tasksData[mainTask]) {
+                tasksData[mainTask] = { subtasks: [] };
+            }
+
+            tasksData[mainTask].subtasks.push({
+                id: Date.now(),
+                name: subTask,
+                targetSeconds: parseInt(targetTime) * 60, 
+                totalSecondsSpent: 0,
+                isRunning: false,
+                startTime: null,
+                history: [],
+                episodeNote: '', 
+                timeNote: ''     
+            });
+            
+            openCategories[mainTask] = true;
+
+            document.getElementById('mainTaskInput').value = '';
+            document.getElementById('subTaskInput').value = '';
+            document.getElementById('targetTimeInput').value = '';
+            saveData();
+            switchTab('list');
+        }
+
+        function toggleTimer(mainTaskName, subTaskId) {
+            const subtask = tasksData[mainTaskName].subtasks.find(s => s.id === subTaskId);
+            
+            if (!subtask.isRunning) {
+                subtask.isRunning = true;
+                subtask.startTime = Date.now();
+                resetInactivityTimer();
+                // Ensure folder stays open when starting timer
+                openCategories[mainTaskName] = true; 
+            } else {
+                stopTimerLogic(subtask, "Manual stop");
+            }
+            saveData();
+            renderTasks();
+        }
+
+        function stopTimerLogic(subtask, reason) {
+            subtask.isRunning = false;
+            const elapsedSeconds = Math.floor((Date.now() - subtask.startTime) / 1000);
+            subtask.totalSecondsSpent += elapsedSeconds;
+            subtask.startTime = null;
+
+            if (elapsedSeconds > 0) {
+                const now = new Date();
+                const dateStr = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+                const mins = Math.floor(elapsedSeconds / 60);
+                const secs = elapsedSeconds % 60;
+                const timeStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+                
+                let logText = reason === "Auto-pause" ? `${timeStr} <i>(Auto-paused)</i>` : timeStr;
+                subtask.history.push({ date: dateStr, duration: logText });
+            }
+        }
+
+        function formatTime(totalSeconds) {
+            const h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
+            const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+            const s = (totalSeconds % 60).toString().padStart(2, '0');
+            return h !== "00" ? `${h}:${m}:${s}` : `${m}:${s}`;
+        }
+
+        function updateVideoNote(mainTaskName, subTaskId, field, value) {
+            const subtask = tasksData[mainTaskName].subtasks.find(s => s.id === subTaskId);
+            if (subtask) {
+                subtask[field] = value;
+                saveData();
+            }
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('taskContainer');
+            if (Object.keys(tasksData).length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding: 40px; color:#7f8c8d;">Kunai task chhaina. 'Add Task' ma gayera naya task thapnuhos.</div>`;
+                return;
+            }
+
+            container.innerHTML = '';
+
+            for (const [mainTaskName, data] of Object.entries(tasksData)) {
+                const mainDiv = document.createElement('div');
+                mainDiv.className = 'main-task';
+                
+                let isRunningInside = data.subtasks.some(s => s.isRunning);
+                if (openCategories[mainTaskName] === undefined) {
+                    openCategories[mainTaskName] = isRunningInside ? true : false; 
+                }
+                const isOpen = openCategories[mainTaskName];
+                const iconTransform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+
+                mainDiv.innerHTML = `
+                    <div class="main-task-header" onclick="toggleCategory('${mainTaskName}')">
+                        <span>📁 ${mainTaskName}</span>
+                        <span class="toggle-icon" style="transform: ${iconTransform}">▼</span>
+                    </div>
+                `;
+
+                const subContainer = document.createElement('div');
+                subContainer.className = 'subtasks-container';
+                subContainer.style.display = isOpen ? 'block' : 'none';
+
+                // Sort subtasks: Running tasks appear first (at the top)
+                let sortedSubtasks = [...data.subtasks].sort((a, b) => {
+                    if (a.isRunning && !b.isRunning) return -1;
+                    if (!a.isRunning && b.isRunning) return 1;
+                    return 0; // maintain original order for non-running tasks
+                });
+
+                sortedSubtasks.forEach(sub => {
+                    let currentDisplaySeconds = sub.totalSecondsSpent;
+                    if (sub.isRunning) {
+                        currentDisplaySeconds += Math.floor((Date.now() - sub.startTime) / 1000);
+                    }
+
+                    const progressText = currentDisplaySeconds >= sub.targetSeconds 
+                        ? `<span style="color:var(--success);font-weight:bold;">✅ Met!</span>` 
+                        : '';
+
+                    let historyHTML = sub.history.length === 0 
+                        ? '<i>No logs yet.</i>' 
+                        : sub.history.map(h => `<div>• ${h.date} : <b>${h.duration}</b></div>`).join('');
+
+                    const subDiv = document.createElement('div');
+                    // Add 'is-running' class dynamically for highlighting
+                    subDiv.className = `sub-task ${sub.isRunning ? 'is-running' : ''}`;
+                    
+                    subDiv.innerHTML = `
+                        <h3>📄 ${sub.name}</h3>
+                        <div class="stats">Target: ${Math.floor(sub.targetSeconds / 60)}m ${progressText}</div>
+                        
+                        <div class="timer-section">
+                            <div class="timer-display" id="timer-${sub.id}">
+                                ${formatTime(currentDisplaySeconds)}
+                            </div>
+                            
+                            <div class="video-tracker">
+                                <label>🎬 Ep/Part</label>
+                                <input type="text" placeholder="e.g. 2" value="${sub.episodeNote || ''}" 
+                                       onkeyup="updateVideoNote('${mainTaskName}', ${sub.id}, 'episodeNote', this.value)">
+                                
+                                <label>⏱ Stop Time</label>
+                                <input type="text" placeholder="e.g. 14:30" value="${sub.timeNote || ''}" 
+                                       onkeyup="updateVideoNote('${mainTaskName}', ${sub.id}, 'timeNote', this.value)">
+                            </div>
+                        </div>
+
+                        <div class="actions">
+                            <button class="btn-action ${sub.isRunning ? 'btn-stop' : 'btn-start'}" 
+                                onclick="toggleTimer('${mainTaskName}', ${sub.id})">
+                                ${sub.isRunning ? '⏹ Stop' : '▶ Start'}
+                            </button>
+                            <button class="btn-action btn-history" onclick="document.getElementById('history-${sub.id}').style.display = document.getElementById('history-${sub.id}').style.display === 'block' ? 'none' : 'block'">
+                                📜 History
+                            </button>
+                        </div>
+                        
+                        <div id="history-${sub.id}" class="history-list">
+                            <b>Logs:</b><br>${historyHTML}
+                        </div>
+                    `;
+                    subContainer.appendChild(subDiv);
+                });
+                
+                mainDiv.appendChild(subContainer);
+                container.appendChild(mainDiv);
+            }
+        }
+
+        setInterval(() => {
+            for (const [mainTaskName, data] of Object.entries(tasksData)) {
+                data.subtasks.forEach(sub => {
+                    if (sub.isRunning) {
+                        const elapsedNow = Math.floor((Date.now() - sub.startTime) / 1000);
+                        const totalNow = sub.totalSecondsSpent + elapsedNow;
+                        const timerElement = document.getElementById(`timer-${sub.id}`);
+                        if (timerElement) {
+                            timerElement.innerText = formatTime(totalNow);
+                        }
+                    }
+                });
+            }
+        }, 1000);
+
+        function pauseAllRunningTimers() {
+            let timerWasPaused = false;
+            for (const [mainTaskName, data] of Object.entries(tasksData)) {
+                data.subtasks.forEach(sub => {
+                    if (sub.isRunning) {
+                        stopTimerLogic(sub, "Auto-pause");
+                        timerWasPaused = true;
+                    }
+                });
+            }
+            if (timerWasPaused) {
+                saveData();
+                renderTasks();
+            }
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                pauseAllRunningTimers();
+            }
+        });
+
+        let inactivityTimer;
+        function resetInactivityTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                pauseAllRunningTimers();
+            }, 5 * 60 * 1000); 
+        }
+
+        ['mousemove', 'keydown', 'scroll', 'touchstart', 'click'].forEach(evt => {
+            window.addEventListener(evt, resetInactivityTimer);
+        });
+
+        resetInactivityTimer();
+        renderTasks();
+    </script>
+</body>
+</html>
